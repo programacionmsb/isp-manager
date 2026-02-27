@@ -7,6 +7,7 @@ export default function Planes() {
   const [planes, setPlanes] = useState([]);
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState(EMPTY);
+  const [editId, setEditId] = useState(null);
 
   const cargar = async () => {
     const r = await api.get('/planes');
@@ -15,10 +16,22 @@ export default function Planes() {
 
   useEffect(() => { cargar(); }, []);
 
+  const abrirModal = (plan = null) => {
+    if (plan) {
+      setForm({ nombre: plan.nombre, velocidad: plan.velocidad, precio: plan.precio, tipo: plan.tipo, periodo: plan.periodo || 'mensual', descripcion: plan.descripcion || '' });
+      setEditId(plan._id);
+    } else {
+      setForm(EMPTY);
+      setEditId(null);
+    }
+    setModal(true);
+  };
+
   const guardar = async () => {
     try {
-      await api.post('/planes', form);
-      setModal(false); setForm(EMPTY); cargar();
+      if (editId) await api.put(`/planes/${editId}`, form);
+      else        await api.post('/planes', form);
+      setModal(false); setForm(EMPTY); setEditId(null); cargar();
     } catch (err) { alert(err.response?.data?.msg || 'Error'); }
   };
 
@@ -35,7 +48,7 @@ export default function Planes() {
           <div className="page-title">Planes de Servicio</div>
           <div className="page-sub">Gestiona los planes disponibles para tus clientes</div>
         </div>
-        <button className="btn btn-primary" onClick={() => setModal(true)}>+ Nuevo Plan</button>
+        <button className="btn btn-primary" onClick={() => abrirModal()}>+ Nuevo Plan</button>
       </div>
 
       <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:'20px'}}>
@@ -56,7 +69,10 @@ export default function Planes() {
               S/ {p.precio}<span style={{fontSize:'13px', color:'var(--text2)', fontWeight:400}}>/{p.periodo === 'anual' ? 'año' : 'mes'}</span>
             </div>
             {p.descripcion && <div style={{fontSize:'12px', color:'var(--text2)', marginBottom:'16px'}}>{p.descripcion}</div>}
-            <button className="btn btn-danger btn-sm" onClick={() => eliminar(p._id)}>Desactivar</button>
+            <div style={{display:'flex', gap:'8px'}}>
+              <button className="btn btn-outline btn-sm" onClick={() => abrirModal(p)}>Editar</button>
+              <button className="btn btn-danger btn-sm" onClick={() => eliminar(p._id)}>Desactivar</button>
+            </div>
           </div>
         ))}
       </div>
@@ -65,7 +81,7 @@ export default function Planes() {
         <div className="modal-overlay" onClick={e => e.target===e.currentTarget && setModal(false)}>
           <div className="modal">
             <div className="modal-head">
-              <h2>Nuevo Plan</h2>
+              <h2>{editId ? 'Editar Plan' : 'Nuevo Plan'}</h2>
               <button className="modal-close" onClick={() => setModal(false)}>✕</button>
             </div>
             <div className="modal-body">
@@ -103,7 +119,7 @@ export default function Planes() {
             </div>
             <div className="modal-footer">
               <button className="btn btn-outline" onClick={() => setModal(false)}>Cancelar</button>
-              <button className="btn btn-primary" onClick={guardar}>Crear Plan</button>
+              <button className="btn btn-primary" onClick={guardar}>{editId ? 'Guardar Cambios' : 'Crear Plan'}</button>
             </div>
           </div>
         </div>
