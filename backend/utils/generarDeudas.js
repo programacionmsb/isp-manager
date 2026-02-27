@@ -21,15 +21,26 @@ async function generarDeudas() {
   let generados = 0;
 
   for (const cliente of clientes) {
-    // Evitar duplicados: verificar que no exista ya la deuda de este mes
-    const existe = await Deuda.findOne({ cliente: cliente._id, mes });
-    if (existe) continue;
+    const esAnual = cliente.plan.periodo === 'anual';
 
-    // Calcular fecha de vencimiento (30 días desde hoy)
+    if (esAnual) {
+      // Planes anuales: solo generar una deuda por año
+      const anioActual = String(hoy.getFullYear());
+      const existeAnual = await Deuda.findOne({
+        cliente: cliente._id,
+        mes: new RegExp(`^${anioActual}-`),
+      });
+      if (existeAnual) continue;
+    } else {
+      // Planes mensuales: evitar duplicado del mes actual
+      const existe = await Deuda.findOne({ cliente: cliente._id, mes });
+      if (existe) continue;
+    }
+
+    // Fecha de vencimiento: 30 días para mensual, 365 para anual
     const fechaVencimiento = new Date(hoy);
-    fechaVencimiento.setDate(fechaVencimiento.getDate() + 30);
+    fechaVencimiento.setDate(fechaVencimiento.getDate() + (esAnual ? 365 : 30));
 
-    // Crear deuda
     const deuda = await Deuda.create({
       cliente:  cliente._id,
       plan:     cliente.plan._id,
@@ -37,9 +48,9 @@ async function generarDeudas() {
       monto:    cliente.plan.precio,
       estado:   'pendiente',
       fechaVencimiento,
+      observacion: esAnual ? 'Pago anual' : undefined,
     });
 
-    // Sumar a deuda total del cliente
     await Cliente.findByIdAndUpdate(cliente._id, {
       $inc: { deudaTotal: cliente.plan.precio }
     });

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
 
-const EMPTY = { nombre:'', velocidad:'', precio:'', tipo:'Fibra Óptica', descripcion:'' };
+const EMPTY = { nombre:'', velocidad:'', precio:'', tipo:'Fibra Óptica', periodo:'mensual', descripcion:'' };
 
 export default function Planes() {
   const [planes, setPlanes] = useState([]);
@@ -43,12 +43,17 @@ export default function Planes() {
           <div key={p._id} className="card" style={{position:'relative', borderColor: p.precio >= 150 ? 'var(--accent)' : 'var(--border)'}}>
             {p.precio >= 150 && <span className="badge badge-info" style={{position:'absolute',top:'12px',right:'12px'}}>Premium</span>}
             <div style={{fontFamily:'Syne,sans-serif', fontSize:'18px', fontWeight:700, marginBottom:'4px'}}>{p.nombre}</div>
-            <div style={{fontSize:'11px', color:'var(--text2)', marginBottom:'12px'}}>{p.tipo}</div>
+            <div style={{fontSize:'11px', color:'var(--text2)', marginBottom:'8px'}}>{p.tipo}</div>
+            <div style={{marginBottom:'12px'}}>
+              <span className={`badge ${p.periodo === 'anual' ? 'badge-info' : 'badge-success'}`} style={{fontSize:'10px'}}>
+                {p.periodo === 'anual' ? 'Anual' : 'Mensual'}
+              </span>
+            </div>
             <div style={{fontFamily:'Syne,sans-serif', fontSize:'36px', fontWeight:800, color:'var(--accent)'}}>
               {p.velocidad}<span style={{fontSize:'16px', color:'var(--text2)', fontWeight:400}}> Mbps</span>
             </div>
             <div style={{fontFamily:'Syne,sans-serif', fontSize:'24px', fontWeight:700, margin:'8px 0'}}>
-              S/ {p.precio}<span style={{fontSize:'13px', color:'var(--text2)', fontWeight:400}}>/mes</span>
+              S/ {p.precio}<span style={{fontSize:'13px', color:'var(--text2)', fontWeight:400}}>/{p.periodo === 'anual' ? 'año' : 'mes'}</span>
             </div>
             {p.descripcion && <div style={{fontSize:'12px', color:'var(--text2)', marginBottom:'16px'}}>{p.descripcion}</div>}
             <button className="btn btn-danger btn-sm" onClick={() => eliminar(p._id)}>Desactivar</button>
@@ -76,11 +81,18 @@ export default function Planes() {
                   </select>
                 </div>
                 <div className="form-group">
+                  <label>Periodo</label>
+                  <select className="select" value={form.periodo} onChange={e=>setForm({...form,periodo:e.target.value})}>
+                    <option value="mensual">Mensual</option>
+                    <option value="anual">Anual</option>
+                  </select>
+                </div>
+                <div className="form-group">
                   <label>Velocidad (Mbps) *</label>
                   <input className="input" type="number" value={form.velocidad} onChange={e=>setForm({...form,velocidad:e.target.value})} placeholder="30" />
                 </div>
                 <div className="form-group">
-                  <label>Precio mensual (S/) *</label>
+                  <label>Precio {form.periodo === 'anual' ? 'anual' : 'mensual'} (S/) *</label>
                   <input className="input" type="number" value={form.precio} onChange={e=>setForm({...form,precio:e.target.value})} placeholder="100" />
                 </div>
                 <div className="form-group full">

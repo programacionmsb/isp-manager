@@ -73,7 +73,7 @@ export default function ClienteDetalle() {
             ['Tipo de Conexión', cliente.tipoConexion || '—'],
             ['Plan', cliente.plan?.nombre],
             ['Velocidad', `${cliente.plan?.velocidad} Mbps`],
-            ['Precio mensual', `S/ ${cliente.plan?.precio}`],
+            ['Precio', `S/ ${cliente.plan?.precio} / ${cliente.plan?.periodo === 'anual' ? 'año' : 'mes'}`],
             ['Día de corte', `Día ${cliente.diaCorte} de cada mes`],
             ['Zona', cliente.zona?.nombre || '—'],
             ['Dirección', cliente.direccion || '—'],
