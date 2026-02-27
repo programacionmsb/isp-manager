@@ -143,6 +143,7 @@ export default function Clientes() {
                     <option>Fibra Óptica</option>
                     <option>Inalámbrico</option>
                     <option>UTP</option>
+                    <option>Varios</option>
                   </select>
                 </div>
                 <div className="form-group">
