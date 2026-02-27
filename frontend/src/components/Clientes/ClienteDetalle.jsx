@@ -74,6 +74,7 @@ export default function ClienteDetalle() {
             ['Velocidad', `${cliente.plan?.velocidad} Mbps`],
             ['Precio mensual', `S/ ${cliente.plan?.precio}`],
             ['Día de corte', `Día ${cliente.diaCorte} de cada mes`],
+            ['Zona', cliente.zona?.nombre || '—'],
             ['Dirección', cliente.direccion || '—'],
             ['DNI / RUC', cliente.dni || '—'],
             ['Notas', cliente.notas || '—'],

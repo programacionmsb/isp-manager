@@ -14,7 +14,7 @@ router.get('/', auth, async (req, res) => {
       { telefono: new RegExp(search, 'i') },
       { dni: new RegExp(search, 'i') },
     ];
-    const clientes = await Cliente.find(filter).populate('plan').sort({ createdAt: -1 });
+    const clientes = await Cliente.find(filter).populate('plan').populate('zona').sort({ createdAt: -1 });
     res.json(clientes);
   } catch (err) {
     res.status(500).json({ msg: err.message });
@@ -24,7 +24,7 @@ router.get('/', auth, async (req, res) => {
 // GET /api/clientes/:id
 router.get('/:id', auth, async (req, res) => {
   try {
-    const cliente = await Cliente.findById(req.params.id).populate('plan');
+    const cliente = await Cliente.findById(req.params.id).populate('plan').populate('zona');
     if (!cliente) return res.status(404).json({ msg: 'Cliente no encontrado' });
     const deudas = await Deuda.find({ cliente: cliente._id }).populate('plan').sort({ mes: -1 });
     res.json({ cliente, deudas });
@@ -47,7 +47,7 @@ router.post('/', auth, async (req, res) => {
 // PUT /api/clientes/:id
 router.put('/:id', auth, async (req, res) => {
   try {
-    const cliente = await Cliente.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate('plan');
+    const cliente = await Cliente.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate('plan').populate('zona');
     res.json(cliente);
   } catch (err) {
     res.status(400).json({ msg: err.message });

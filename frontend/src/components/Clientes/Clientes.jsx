@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 
-const EMPTY = { nombre:'', dni:'', telefono:'', email:'', direccion:'', plan:'', estado:'activo', diaCorte:1, notas:'' };
+const EMPTY = { nombre:'', dni:'', telefono:'', email:'', zona:'', direccion:'', plan:'', estado:'activo', diaCorte:1, notas:'' };
 
 export default function Clientes() {
   const [clientes, setClientes] = useState([]);
   const [planes, setPlanes] = useState([]);
+  const [zonas, setZonas] = useState([]);
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState(EMPTY);
   const [editId, setEditId] = useState(null);
@@ -19,8 +20,8 @@ export default function Clientes() {
     const params = {};
     if (search) params.search = search;
     if (estado) params.estado = estado;
-    const [c, p] = await Promise.all([api.get('/clientes', { params }), api.get('/planes')]);
-    setClientes(c.data); setPlanes(p.data);
+    const [c, p, z] = await Promise.all([api.get('/clientes', { params }), api.get('/planes'), api.get('/zonas')]);
+    setClientes(c.data); setPlanes(p.data); setZonas(z.data);
     setLoading(false);
   };
 
@@ -28,7 +29,7 @@ export default function Clientes() {
 
   const abrirModal = (cliente = null) => {
     if (cliente) {
-      setForm({ ...cliente, plan: cliente.plan?._id || cliente.plan });
+      setForm({ ...cliente, plan: cliente.plan?._id || cliente.plan, zona: cliente.zona?._id || cliente.zona || '' });
       setEditId(cliente._id);
     } else {
       setForm(EMPTY); setEditId(null);
@@ -80,10 +81,10 @@ export default function Clientes() {
 
       <div className="table-wrap">
         <table>
-          <thead><tr><th>#</th><th>Nombre</th><th>Teléfono</th><th>Plan</th><th>Día Corte</th><th>Deuda</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <thead><tr><th>#</th><th>Nombre</th><th>Teléfono</th><th>Zona</th><th>Plan</th><th>Día Corte</th><th>Deuda</th><th>Estado</th><th>Acciones</th></tr></thead>
           <tbody>
             {clientes.length === 0 ? (
-              <tr><td colSpan="8" style={{textAlign:'center', padding:'40px', color:'var(--text2)'}}>No hay clientes</td></tr>
+              <tr><td colSpan="9" style={{textAlign:'center', padding:'40px', color:'var(--text2)'}}>No hay clientes</td></tr>
             ) : clientes.map((c, i) => (
               <tr key={c._id}>
                 <td style={{color:'var(--text2)'}}>{i+1}</td>
@@ -94,6 +95,7 @@ export default function Clientes() {
                   <div style={{fontSize:'11px', color:'var(--text2)'}}>{c.email || '—'}</div>
                 </td>
                 <td>{c.telefono}</td>
+                <td>{c.zona?.nombre || <span style={{color:'var(--text2)'}}>—</span>}</td>
                 <td>{c.plan?.nombre || '—'}</td>
                 <td style={{textAlign:'center'}}>Día {c.diaCorte}</td>
                 <td style={{color: c.deudaTotal > 0 ? 'var(--warning)' : 'var(--success)', fontWeight:600}}>
@@ -135,7 +137,14 @@ export default function Clientes() {
                   <label>Email</label>
                   <input className="input" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} placeholder="correo@mail.com" />
                 </div>
-                <div className="form-group full">
+                <div className="form-group">
+                  <label>Zona</label>
+                  <select className="select" value={form.zona} onChange={e=>setForm({...form,zona:e.target.value})}>
+                    <option value="">Sin zona</option>
+                    {zonas.map(z => <option key={z._id} value={z._id}>{z.nombre}</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
                   <label>Dirección</label>
                   <input className="input" value={form.direccion} onChange={e=>setForm({...form,direccion:e.target.value})} placeholder="Jr. Los Rosales 123" />
                 </div>

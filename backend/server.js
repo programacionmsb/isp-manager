@@ -16,6 +16,7 @@ app.use('/api/clientes', require('./routes/clientes'));
 app.use('/api/planes',   require('./routes/planes'));
 app.use('/api/caja',     require('./routes/caja'));
 app.use('/api/reportes', require('./routes/reportes'));
+app.use('/api/zonas',   require('./routes/zonas'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));

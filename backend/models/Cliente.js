@@ -5,6 +5,7 @@ const ClienteSchema = new mongoose.Schema({
   dni:           { type: String },
   telefono:      { type: String, required: true },
   email:         { type: String },
+  zona:          { type: mongoose.Schema.Types.ObjectId, ref: 'Zona' },
   direccion:     { type: String },
   plan:          { type: mongoose.Schema.Types.ObjectId, ref: 'Plan', required: true },
   estado:        { type: String, enum: ['activo', 'inactivo', 'suspendido'], default: 'activo' },
