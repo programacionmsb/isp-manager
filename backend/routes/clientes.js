@@ -6,9 +6,10 @@ const auth = require('../middlewares/auth');
 // GET /api/clientes
 router.get('/', auth, async (req, res) => {
   try {
-    const { estado, search } = req.query;
+    const { estado, search, servicio } = req.query;
     const filter = {};
     if (estado) filter.estado = estado;
+    if (servicio) filter.servicio = servicio;
     if (search) filter.$or = [
       { nombre: new RegExp(search, 'i') },
       { telefono: new RegExp(search, 'i') },

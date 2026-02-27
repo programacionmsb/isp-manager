@@ -2,15 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 
-const EMPTY = { nombre:'', dni:'', telefono:'', email:'', servicios:['Internet'], tipoConexion:'Fibra Óptica', zona:'', direccion:'', plan:'', estado:'activo', diaCorte:1, notas:'' };
-const SERVICIOS = ['Internet', 'Cable', 'Internet y Cable'];
-
-const toggleServicio = (form, setForm, val) => {
-  const lista = form.servicios.includes(val)
-    ? form.servicios.filter(s => s !== val)
-    : [...form.servicios, val];
-  setForm({ ...form, servicios: lista });
-};
+const EMPTY = { nombre:'', dni:'', telefono:'', email:'', servicio:'Internet', tipoConexion:'Fibra Óptica', zona:'', direccion:'', plan:'', estado:'activo', diaCorte:1, notas:'' };
 
 export default function Clientes() {
   const [clientes, setClientes] = useState([]);
@@ -21,6 +13,7 @@ export default function Clientes() {
   const [editId, setEditId] = useState(null);
   const [search, setSearch] = useState('');
   const [estado, setEstado] = useState('');
+  const [servicio, setServicio] = useState('');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -28,16 +21,17 @@ export default function Clientes() {
     const params = {};
     if (search) params.search = search;
     if (estado) params.estado = estado;
+    if (servicio) params.servicio = servicio;
     const [c, p, z] = await Promise.all([api.get('/clientes', { params }), api.get('/planes'), api.get('/zonas')]);
     setClientes(c.data); setPlanes(p.data); setZonas(z.data);
     setLoading(false);
   };
 
-  useEffect(() => { cargar(); }, [search, estado]);
+  useEffect(() => { cargar(); }, [search, estado, servicio]);
 
   const abrirModal = (cliente = null) => {
     if (cliente) {
-      setForm({ ...cliente, plan: cliente.plan?._id || cliente.plan, zona: cliente.zona?._id || cliente.zona || '', servicios: cliente.servicios || ['Internet'] });
+      setForm({ ...cliente, plan: cliente.plan?._id || cliente.plan, zona: cliente.zona?._id || cliente.zona || '', servicio: cliente.servicio || 'Internet' });
       setEditId(cliente._id);
     } else {
       setForm(EMPTY); setEditId(null);
@@ -84,6 +78,12 @@ export default function Clientes() {
           <option value="activo">Activo</option>
           <option value="inactivo">Inactivo</option>
           <option value="suspendido">Suspendido</option>
+        </select>
+        <select className="select" style={{maxWidth:'200px'}} value={servicio} onChange={e => setServicio(e.target.value)}>
+          <option value="">Todos los servicios</option>
+          <option value="Internet">Internet</option>
+          <option value="Cable">Cable</option>
+          <option value="Internet y Cable">Internet y Cable</option>
         </select>
       </div>
 
@@ -145,20 +145,13 @@ export default function Clientes() {
                   <label>Email</label>
                   <input className="input" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} placeholder="correo@mail.com" />
                 </div>
-                <div className="form-group full">
-                  <label>Servicios</label>
-                  <div style={{display:'flex', gap:'16px', marginTop:'6px'}}>
-                    {SERVICIOS.map(s => (
-                      <label key={s} style={{display:'flex', alignItems:'center', gap:'6px', cursor:'pointer', fontSize:'13px'}}>
-                        <input
-                          type="checkbox"
-                          checked={form.servicios.includes(s)}
-                          onChange={() => toggleServicio(form, setForm, s)}
-                        />
-                        {s}
-                      </label>
-                    ))}
-                  </div>
+                <div className="form-group">
+                  <label>Servicio</label>
+                  <select className="select" value={form.servicio} onChange={e=>setForm({...form,servicio:e.target.value})}>
+                    <option>Internet</option>
+                    <option>Cable</option>
+                    <option>Internet y Cable</option>
+                  </select>
                 </div>
                 <div className="form-group">
                   <label>Tipo de Conexión</label>
