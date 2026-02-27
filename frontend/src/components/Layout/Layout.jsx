@@ -9,6 +9,7 @@ const navItems = [
   { to: '/caja',     icon: '💳', label: 'Caja' },
   { to: '/reportes', icon: '📊', label: 'Reportes' },
   { to: '/zonas',    icon: '📍', label: 'Zonas' },
+  { to: '/usuarios', icon: '🔑', label: 'Usuarios', soloAdmin: true },
 ];
 
 export default function Layout() {
@@ -30,7 +31,7 @@ export default function Layout() {
 
         <nav className="sidebar-nav">
           <div className="nav-section">Principal</div>
-          {navItems.map(item => (
+          {navItems.filter(item => !item.soloAdmin || usuario?.rol === 'admin').map(item => (
             <NavLink
               key={item.to}
               to={item.to}
