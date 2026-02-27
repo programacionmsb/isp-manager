@@ -22,8 +22,10 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Dat
 
 // Conexión MongoDB
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => {
+  .then(async () => {
     console.log('✅ MongoDB conectado');
+    const { seedUsuarios } = require('./scripts/seed');
+    await seedUsuarios();
     iniciarCronJobs();
     app.listen(process.env.PORT || 5000, () =>
       console.log(`🚀 Servidor en puerto ${process.env.PORT || 5000}`)
