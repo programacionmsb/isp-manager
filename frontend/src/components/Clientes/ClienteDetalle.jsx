@@ -70,6 +70,7 @@ export default function ClienteDetalle() {
         <div className="card">
           <div className="table-title" style={{marginBottom:'16px'}}>Información</div>
           {[
+            ['Tipo de Conexión', cliente.tipoConexion || '—'],
             ['Plan', cliente.plan?.nombre],
             ['Velocidad', `${cliente.plan?.velocidad} Mbps`],
             ['Precio mensual', `S/ ${cliente.plan?.precio}`],

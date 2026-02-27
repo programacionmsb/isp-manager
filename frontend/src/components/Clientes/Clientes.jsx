@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 
-const EMPTY = { nombre:'', dni:'', telefono:'', email:'', zona:'', direccion:'', plan:'', estado:'activo', diaCorte:1, notas:'' };
+const EMPTY = { nombre:'', dni:'', telefono:'', email:'', tipoConexion:'Fibra Óptica', zona:'', direccion:'', plan:'', estado:'activo', diaCorte:1, notas:'' };
 
 export default function Clientes() {
   const [clientes, setClientes] = useState([]);
@@ -136,6 +136,14 @@ export default function Clientes() {
                 <div className="form-group">
                   <label>Email</label>
                   <input className="input" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} placeholder="correo@mail.com" />
+                </div>
+                <div className="form-group">
+                  <label>Tipo de Conexión</label>
+                  <select className="select" value={form.tipoConexion} onChange={e=>setForm({...form,tipoConexion:e.target.value})}>
+                    <option>Fibra Óptica</option>
+                    <option>Inalámbrico</option>
+                    <option>UTP</option>
+                  </select>
                 </div>
                 <div className="form-group">
                   <label>Zona</label>
