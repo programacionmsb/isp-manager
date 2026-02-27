@@ -14,6 +14,7 @@ export default function Clientes() {
   const [search, setSearch] = useState('');
   const [estado, setEstado] = useState('');
   const [servicio, setServicio] = useState('');
+  const [tipoConexion, setTipoConexion] = useState('');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -22,12 +23,13 @@ export default function Clientes() {
     if (search) params.search = search;
     if (estado) params.estado = estado;
     if (servicio) params.servicio = servicio;
+    if (tipoConexion) params.tipoConexion = tipoConexion;
     const [c, p, z] = await Promise.all([api.get('/clientes', { params }), api.get('/planes'), api.get('/zonas')]);
     setClientes(c.data); setPlanes(p.data); setZonas(z.data);
     setLoading(false);
   };
 
-  useEffect(() => { cargar(); }, [search, estado, servicio]);
+  useEffect(() => { cargar(); }, [search, estado, servicio, tipoConexion]);
 
   const abrirModal = (cliente = null) => {
     if (cliente) {
@@ -85,14 +87,21 @@ export default function Clientes() {
           <option value="Cable">Cable</option>
           <option value="Internet y Cable">Internet y Cable</option>
         </select>
+        <select className="select" style={{maxWidth:'200px'}} value={tipoConexion} onChange={e => setTipoConexion(e.target.value)}>
+          <option value="">Todos los tipos</option>
+          <option value="Fibra Óptica">Fibra Óptica</option>
+          <option value="Inalámbrico">Inalámbrico</option>
+          <option value="UTP">UTP</option>
+          <option value="Varios">Varios</option>
+        </select>
       </div>
 
       <div className="table-wrap">
         <table>
-          <thead><tr><th>#</th><th>Nombre</th><th>Teléfono</th><th>Zona</th><th>Servicio</th><th>Plan</th><th>Día Corte</th><th>Deuda</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <thead><tr><th>#</th><th>Nombre</th><th>Teléfono</th><th>Zona</th><th>Servicio</th><th>Conexión</th><th>Plan</th><th>Día Corte</th><th>Deuda</th><th>Estado</th><th>Acciones</th></tr></thead>
           <tbody>
             {clientes.length === 0 ? (
-              <tr><td colSpan="10" style={{textAlign:'center', padding:'40px', color:'var(--text2)'}}>No hay clientes</td></tr>
+              <tr><td colSpan="11" style={{textAlign:'center', padding:'40px', color:'var(--text2)'}}>No hay clientes</td></tr>
             ) : clientes.map((c, i) => (
               <tr key={c._id}>
                 <td style={{color:'var(--text2)'}}>{i+1}</td>
@@ -105,6 +114,7 @@ export default function Clientes() {
                 <td>{c.telefono}</td>
                 <td>{c.zona?.nombre || <span style={{color:'var(--text2)'}}>—</span>}</td>
                 <td>{c.servicio || <span style={{color:'var(--text2)'}}>—</span>}</td>
+                <td>{c.tipoConexion || <span style={{color:'var(--text2)'}}>—</span>}</td>
                 <td>{c.plan?.nombre || '—'}</td>
                 <td style={{textAlign:'center'}}>Día {c.diaCorte}</td>
                 <td style={{color: c.deudaTotal > 0 ? 'var(--warning)' : 'var(--success)', fontWeight:600}}>
