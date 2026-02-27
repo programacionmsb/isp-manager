@@ -89,10 +89,10 @@ export default function Clientes() {
 
       <div className="table-wrap">
         <table>
-          <thead><tr><th>#</th><th>Nombre</th><th>Teléfono</th><th>Zona</th><th>Plan</th><th>Día Corte</th><th>Deuda</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <thead><tr><th>#</th><th>Nombre</th><th>Teléfono</th><th>Zona</th><th>Servicio</th><th>Plan</th><th>Día Corte</th><th>Deuda</th><th>Estado</th><th>Acciones</th></tr></thead>
           <tbody>
             {clientes.length === 0 ? (
-              <tr><td colSpan="9" style={{textAlign:'center', padding:'40px', color:'var(--text2)'}}>No hay clientes</td></tr>
+              <tr><td colSpan="10" style={{textAlign:'center', padding:'40px', color:'var(--text2)'}}>No hay clientes</td></tr>
             ) : clientes.map((c, i) => (
               <tr key={c._id}>
                 <td style={{color:'var(--text2)'}}>{i+1}</td>
@@ -104,6 +104,7 @@ export default function Clientes() {
                 </td>
                 <td>{c.telefono}</td>
                 <td>{c.zona?.nombre || <span style={{color:'var(--text2)'}}>—</span>}</td>
+                <td>{c.servicio || <span style={{color:'var(--text2)'}}>—</span>}</td>
                 <td>{c.plan?.nombre || '—'}</td>
                 <td style={{textAlign:'center'}}>Día {c.diaCorte}</td>
                 <td style={{color: c.deudaTotal > 0 ? 'var(--warning)' : 'var(--success)', fontWeight:600}}>
