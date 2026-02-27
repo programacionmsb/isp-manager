@@ -2,10 +2,15 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 
+const mesActual = () => new Date().toISOString().slice(0, 7);
+
 export default function ClienteDetalle() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [data, setData] = useState(null);
+  const [modalDeuda, setModalDeuda] = useState(false);
+  const [formDeuda, setFormDeuda] = useState({ monto: '', mes: mesActual(), concepto: '' });
+  const [guardando, setGuardando] = useState(false);
 
   const cargar = async () => {
     const r = await api.get(`/clientes/${id}`);
@@ -19,6 +24,29 @@ export default function ClienteDetalle() {
     if (!metodo) return;
     await api.post(`/caja/cobrar/${deudaId}`, { metodoPago: metodo });
     cargar();
+  };
+
+  const abrirModalDeuda = () => {
+    setFormDeuda({ monto: data?.cliente?.plan?.precio || '', mes: mesActual(), concepto: '' });
+    setModalDeuda(true);
+  };
+
+  const agregarDeuda = async e => {
+    e.preventDefault();
+    if (!formDeuda.monto || isNaN(formDeuda.monto)) return;
+    setGuardando(true);
+    try {
+      await api.post('/caja/deuda-manual', {
+        clienteId: id,
+        monto: Number(formDeuda.monto),
+        mes: formDeuda.mes,
+        concepto: formDeuda.concepto,
+      });
+      setModalDeuda(false);
+      cargar();
+    } finally {
+      setGuardando(false);
+    }
   };
 
   if (!data) return <div className="loading">Cargando...</div>;
@@ -76,6 +104,7 @@ export default function ClienteDetalle() {
           <div className="table-wrap">
             <div className="table-header">
               <span className="table-title">Historial de Deudas</span>
+              <button className="btn btn-primary btn-sm" onClick={abrirModalDeuda}>+ Agregar Deuda</button>
             </div>
             <table>
               <thead><tr><th>Mes</th><th>Monto</th><th>Vencimiento</th><th>Pagado</th><th>Estado</th><th>Acción</th></tr></thead>
@@ -105,6 +134,58 @@ export default function ClienteDetalle() {
           </div>
         </div>
       </div>
+
+      {modalDeuda && (
+        <div className="modal-overlay" onClick={() => setModalDeuda(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <span className="modal-title">Agregar Deuda Pendiente</span>
+              <button className="modal-close" onClick={() => setModalDeuda(false)}>×</button>
+            </div>
+            <form onSubmit={agregarDeuda}>
+              <div className="form-group">
+                <label className="form-label">Monto (S/)</label>
+                <input
+                  className="form-input"
+                  type="number"
+                  min="1"
+                  step="0.01"
+                  placeholder="Ej: 50.00"
+                  value={formDeuda.monto}
+                  onChange={e => setFormDeuda(f => ({ ...f, monto: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Mes</label>
+                <input
+                  className="form-input"
+                  type="month"
+                  value={formDeuda.mes}
+                  onChange={e => setFormDeuda(f => ({ ...f, mes: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Concepto (opcional)</label>
+                <input
+                  className="form-input"
+                  type="text"
+                  placeholder="Ej: Deuda anterior, recargo, etc."
+                  value={formDeuda.concepto}
+                  onChange={e => setFormDeuda(f => ({ ...f, concepto: e.target.value }))}
+                />
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-outline" onClick={() => setModalDeuda(false)}>Cancelar</button>
+                <button type="submit" className="btn btn-primary" disabled={guardando}>
+                  {guardando ? 'Guardando...' : 'Agregar Deuda'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
