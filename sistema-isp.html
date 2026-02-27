@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISP Manager — Sistema de Administración</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --bg2: #111827;
+    --bg3: #1a2235;
+    --border: rgba(99,179,237,0.15);
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --card: #131b2e;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Mono',monospace; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; }
+
+  /* SIDEBAR */
+  .sidebar {
+    position:fixed; left:0; top:0; width:230px; height:100vh;
+    background:var(--bg2); border-right:1px solid var(--border);
+    display:flex; flex-direction:column; z-index:100;
+  }
+  .logo { padding:24px 20px; border-bottom:1px solid var(--border); }
+  .logo-icon { width:36px; height:36px; background:linear-gradient(135deg,var(--accent),var(--accent2)); border-radius:8px; display:inline-flex; align-items:center; justify-content:center; font-size:18px; margin-bottom:8px; }
+  .logo h1 { font-family:'Syne',sans-serif; font-size:16px; font-weight:800; color:var(--accent); letter-spacing:2px; }
+  .logo p { font-size:10px; color:var(--text2); letter-spacing:1px; }
+  nav { flex:1; padding:16px 0; }
+  .nav-section { font-size:9px; letter-spacing:2px; color:var(--text2); padding:8px 20px 4px; text-transform:uppercase; }
+  .nav-item {
+    display:flex; align-items:center; gap:10px; padding:10px 20px;
+    cursor:pointer; color:var(--text2); font-size:13px; font-weight:400;
+    transition:all 0.2s; border-left:2px solid transparent;
+  }
+  .nav-item:hover { color:var(--text); background:rgba(56,189,248,0.05); }
+  .nav-item.active { color:var(--accent); background:rgba(56,189,248,0.08); border-left-color:var(--accent); }
+  .nav-item .icon { font-size:16px; width:20px; text-align:center; }
+  .sidebar-footer { padding:16px 20px; border-top:1px solid var(--border); font-size:11px; color:var(--text2); }
+
+  /* MAIN */
+  .main { margin-left:230px; min-height:100vh; }
+  .topbar {
+    background:var(--bg2); border-bottom:1px solid var(--border);
+    padding:0 32px; height:60px; display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:50;
+  }
+  .topbar-title { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; }
+  .topbar-actions { display:flex; align-items:center; gap:12px; }
+  .badge { background:var(--accent); color:var(--bg); font-size:11px; padding:2px 8px; border-radius:20px; font-weight:500; }
+  .btn {
+    padding:8px 16px; border-radius:6px; border:none; cursor:pointer;
+    font-family:'DM Mono',monospace; font-size:12px; font-weight:500; transition:all 0.2s;
+  }
+  .btn-primary { background:var(--accent); color:var(--bg); }
+  .btn-primary:hover { background:#7dd3fc; }
+  .btn-outline { background:transparent; color:var(--accent); border:1px solid var(--accent); }
+  .btn-outline:hover { background:rgba(56,189,248,0.1); }
+  .btn-danger { background:transparent; color:var(--danger); border:1px solid var(--danger); }
+  .btn-sm { padding:5px 10px; font-size:11px; }
+  .content { padding:32px; }
+
+  /* PAGES */
+  .page { display:none; }
+  .page.active { display:block; }
+
+  /* STATS */
+  .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:32px; }
+  .stat-card {
+    background:var(--card); border:1px solid var(--border); border-radius:12px;
+    padding:20px; position:relative; overflow:hidden;
+  }
+  .stat-card::before { content:''; position:absolute; top:0; right:0; width:80px; height:80px; border-radius:50%; opacity:0.08; }
+  .stat-card.blue::before { background:var(--accent); }
+  .stat-card.purple::before { background:var(--accent2); }
+  .stat-card.green::before { background:var(--success); }
+  .stat-card.yellow::before { background:var(--warning); }
+  .stat-label { font-size:11px; color:var(--text2); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
+  .stat-value { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; }
+  .stat-sub { font-size:11px; color:var(--text2); margin-top:4px; }
+  .stat-dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:4px; }
+
+  /* TABLE */
+  .table-wrap { background:var(--card); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .table-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .table-title { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; }
+  .search-box {
+    background:var(--bg3); border:1px solid var(--border); border-radius:6px;
+    padding:6px 12px; color:var(--text); font-family:'DM Mono',monospace; font-size:12px; outline:none;
+    width:200px;
+  }
+  .search-box:focus { border-color:var(--accent); }
+  table { width:100%; border-collapse:collapse; }
+  th { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text2); padding:10px 20px; text-align:left; background:var(--bg3); font-weight:400; }
+  td { padding:12px 20px; font-size:12px; border-top:1px solid var(--border); }
+  tr:hover td { background:rgba(56,189,248,0.03); }
+  .status { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:500; }
+  .status.activo { background:rgba(52,211,153,0.15); color:var(--success); }
+  .status.inactivo { background:rgba(248,113,113,0.15); color:var(--danger); }
+  .status.pendiente { background:rgba(251,191,36,0.15); color:var(--warning); }
+  .status.pagado { background:rgba(52,211,153,0.15); color:var(--success); }
+  .status.vencido { background:rgba(248,113,113,0.15); color:var(--danger); }
+
+  /* MODAL */
+  .modal-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:200;
+    display:none; align-items:center; justify-content:center;
+    backdrop-filter:blur(4px);
+  }
+  .modal-overlay.open { display:flex; }
+  .modal {
+    background:var(--bg2); border:1px solid var(--border); border-radius:16px;
+    width:520px; max-width:95vw; max-height:90vh; overflow-y:auto;
+  }
+  .modal-head { padding:20px 24px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+  .modal-head h2 { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; }
+  .modal-close { background:none; border:none; color:var(--text2); font-size:20px; cursor:pointer; }
+  .modal-body { padding:24px; }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .form-group { display:flex; flex-direction:column; gap:6px; }
+  .form-group.full { grid-column:1/-1; }
+  label { font-size:11px; color:var(--text2); letter-spacing:1px; text-transform:uppercase; }
+  input, select, textarea {
+    background:var(--bg3); border:1px solid var(--border); border-radius:6px;
+    padding:8px 12px; color:var(--text); font-family:'DM Mono',monospace; font-size:13px; outline:none;
+  }
+  input:focus, select:focus, textarea:focus { border-color:var(--accent); }
+  select option { background:var(--bg2); }
+  .modal-footer { padding:16px 24px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px; }
+
+  /* PLANES */
+  .plans-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+  .plan-card {
+    background:var(--card); border:1px solid var(--border); border-radius:12px;
+    padding:24px; position:relative;
+  }
+  .plan-card.featured { border-color:var(--accent); }
+  .plan-badge { position:absolute; top:12px; right:12px; background:var(--accent); color:var(--bg); font-size:10px; padding:2px 8px; border-radius:20px; }
+  .plan-name { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; margin-bottom:4px; }
+  .plan-speed { font-size:32px; font-weight:800; color:var(--accent); font-family:'Syne',sans-serif; }
+  .plan-speed span { font-size:14px; color:var(--text2); font-weight:400; }
+  .plan-price { font-size:22px; font-weight:700; margin:12px 0; font-family:'Syne',sans-serif; }
+  .plan-price span { font-size:13px; color:var(--text2); font-weight:400; }
+  .plan-clients { font-size:12px; color:var(--text2); margin-bottom:16px; }
+  .plan-actions { display:flex; gap:8px; }
+
+  /* CHARTS */
+  .charts-grid { display:grid; grid-template-columns:2fr 1fr; gap:20px; margin-top:20px; }
+  .chart-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; }
+  .chart-title { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; margin-bottom:16px; }
+  .bar-chart { display:flex; align-items:flex-end; gap:8px; height:120px; }
+  .bar { flex:1; background:linear-gradient(180deg,var(--accent),rgba(56,189,248,0.3)); border-radius:4px 4px 0 0; min-width:20px; position:relative; cursor:pointer; transition:opacity 0.2s; }
+  .bar:hover { opacity:0.8; }
+  .bar-label { font-size:10px; color:var(--text2); text-align:center; margin-top:6px; }
+  .bar-labels { display:flex; gap:8px; }
+  .bar-labels div { flex:1; text-align:center; font-size:10px; color:var(--text2); }
+  .donut-wrap { display:flex; align-items:center; justify-content:center; flex-direction:column; }
+  .legend { margin-top:16px; display:flex; flex-direction:column; gap:8px; width:100%; }
+  .legend-item { display:flex; align-items:center; justify-content:space-between; font-size:12px; }
+  .legend-dot { width:10px; height:10px; border-radius:50%; margin-right:8px; }
+
+  /* ANIMACIONES */
+  @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .page.active { animation:fadeIn 0.3s ease; }
+
+  /* PAGOS */
+  .pay-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+  .filter-row { display:flex; gap:12px; align-items:center; margin-bottom:16px; flex-wrap:wrap; }
+  .select-filter { background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:6px 10px; color:var(--text); font-size:12px; font-family:'DM Mono',monospace; outline:none; }
+
+  /* EMPTY */
+  .empty { text-align:center; padding:60px 20px; color:var(--text2); }
+  .empty-icon { font-size:48px; margin-bottom:16px; }
+  .empty p { font-size:13px; }
+
+  /* SCROLL */
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-track { background:var(--bg); }
+  ::-webkit:scrollbar-thumb { background:var(--border); border-radius:3px; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">📡</div>
+    <h1>ISP MANAGER</h1>
+    <p>Sistema de Administración</p>
+  </div>
+  <nav>
+    <div class="nav-section">Principal</div>
+    <div class="nav-item active" onclick="goTo('dashboard',this)"><span class="icon">◈</span> Dashboard</div>
+    <div class="nav-section">Gestión</div>
+    <div class="nav-item" onclick="goTo('clientes',this)"><span class="icon">👥</span> Clientes</div>
+    <div class="nav-item" onclick="goTo('pagos',this)"><span class="icon">💳</span> Pagos</div>
+    <div class="nav-item" onclick="goTo('planes',this)"><span class="icon">📦</span> Planes</div>
+    <div class="nav-section">Análisis</div>
+    <div class="nav-item" onclick="goTo('reportes',this)"><span class="icon">📊</span> Reportes</div>
+  </nav>
+  <div class="sidebar-footer">
+    <div style="color:var(--success);font-size:11px;">● Sistema Activo</div>
+    <div style="margin-top:4px;">v1.0.0 — 2026</div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <span class="topbar-title" id="page-title">Dashboard</span>
+    <div class="topbar-actions">
+      <span id="topbar-date" style="font-size:12px;color:var(--text2)"></span>
+      <span class="badge" id="alert-count">3 alertas</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card blue">
+          <div class="stat-label">Total Clientes</div>
+          <div class="stat-value" id="s-total">0</div>
+          <div class="stat-sub">Registrados en el sistema</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Clientes Activos</div>
+          <div class="stat-value" id="s-activos">0</div>
+          <div class="stat-sub"><span class="stat-dot" style="background:var(--success)"></span>Al día</div>
+        </div>
+        <div class="stat-card yellow">
+          <div class="stat-label">Pagos Pendientes</div>
+          <div class="stat-value" id="s-pendientes">0</div>
+          <div class="stat-sub">Por cobrar</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-label">Ingresos del Mes</div>
+          <div class="stat-value" id="s-ingresos">S/ 0</div>
+          <div class="stat-sub">Cobrado este mes</div>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-title">Cobros por Mes (últimos 6 meses)</div>
+          <div class="bar-chart" id="bar-chart"></div>
+          <div class="bar-labels" id="bar-labels"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Estado de Clientes</div>
+          <div class="donut-wrap">
+            <svg width="120" height="120" viewBox="0 0 120 120" id="donut-svg"></svg>
+            <div class="legend" id="donut-legend"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;">
+        <div class="table-wrap">
+          <div class="table-header">
+            <span class="table-title">Clientes con Pago Pendiente</span>
+            <button class="btn btn-outline btn-sm" onclick="goTo('pagos',null)">Ver todos</button>
+          </div>
+          <table>
+            <thead><tr><th>Cliente</th><th>Plan</th><th>Monto</th><th>Vencimiento</th><th>Estado</th></tr></thead>
+            <tbody id="pending-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLIENTES -->
+    <div class="page" id="page-clientes">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <div>
+          <div style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;">Clientes</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px;">Gestiona todos tus clientes de internet</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('modalCliente')">+ Nuevo Cliente</button>
+      </div>
+      <div class="filter-row">
+        <input class="search-box" placeholder="🔍 Buscar cliente..." oninput="filterClientes(this.value)" id="search-clientes">
+        <select class="select-filter" onchange="filterClientesEstado(this.value)">
+          <option value="">Todos los estados</option>
+          <option value="activo">Activo</option>
+          <option value="inactivo">Inactivo</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Nombre</th><th>Teléfono</th><th>Dirección</th><th>Plan</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="clientes-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PAGOS -->
+    <div class="page" id="page-pagos">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <div>
+          <div style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;">Pagos & Facturación</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px;">Control de cobros y pagos</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('modalPago')">+ Registrar Pago</button>
+      </div>
+      <div class="pay-summary">
+        <div class="stat-card green"><div class="stat-label">Cobrado este Mes</div><div class="stat-value" id="p-cobrado">S/ 0</div></div>
+        <div class="stat-card yellow"><div class="stat-label">Pendiente</div><div class="stat-value" id="p-pendiente">S/ 0</div></div>
+        <div class="stat-card blue"><div class="stat-label">Total Registros</div><div class="stat-value" id="p-total">0</div></div>
+      </div>
+      <div class="filter-row">
+        <input class="search-box" placeholder="🔍 Buscar..." oninput="filterPagos(this.value)">
+        <select class="select-filter" onchange="filterPagosEstado(this.value)">
+          <option value="">Todos</option>
+          <option value="pagado">Pagado</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="vencido">Vencido</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Cliente</th><th>Plan</th><th>Monto</th><th>Fecha Pago</th><th>Vencimiento</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="pagos-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PLANES -->
+    <div class="page" id="page-planes">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+        <div>
+          <div style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;">Planes de Servicio</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px;">Gestiona los planes disponibles</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('modalPlan')">+ Nuevo Plan</button>
+      </div>
+      <div class="plans-grid" id="planes-grid"></div>
+    </div>
+
+    <!-- REPORTES -->
+    <div class="page" id="page-reportes">
+      <div style="font-family:Syne,sans-serif;font-size:22px;font-weight:800;margin-bottom:24px;">Reportes & Estadísticas</div>
+      <div class="stats-grid">
+        <div class="stat-card blue"><div class="stat-label">Clientes Nuevos (mes)</div><div class="stat-value" id="r-nuevos">0</div></div>
+        <div class="stat-card green"><div class="stat-label">Tasa Retención</div><div class="stat-value" id="r-retencion">0%</div></div>
+        <div class="stat-card yellow"><div class="stat-label">Ingreso Promedio</div><div class="stat-value" id="r-promedio">S/ 0</div></div>
+        <div class="stat-card purple"><div class="stat-label">Plan Más Vendido</div><div class="stat-value" id="r-top" style="font-size:16px;">—</div></div>
+      </div>
+      <div class="charts-grid" style="margin-top:20px;">
+        <div class="chart-card">
+          <div class="chart-title">Ingresos Anuales por Mes</div>
+          <div class="bar-chart" id="report-chart"></div>
+          <div class="bar-labels" id="report-labels"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Distribución por Plan</div>
+          <div id="plan-dist"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<!-- MODAL CLIENTE -->
+<div class="modal-overlay" id="modalCliente">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modal-cliente-title">Nuevo Cliente</h2>
+      <button class="modal-close" onclick="closeModal('modalCliente')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Nombre *</label><input id="c-nombre" placeholder="Juan Pérez"></div>
+        <div class="form-group"><label>DNI / RUC</label><input id="c-dni" placeholder="12345678"></div>
+        <div class="form-group"><label>Teléfono *</label><input id="c-tel" placeholder="999 888 777"></div>
+        <div class="form-group"><label>Email</label><input id="c-email" placeholder="correo@ejemplo.com"></div>
+        <div class="form-group full"><label>Dirección</label><input id="c-dir" placeholder="Jr. Los Rosales 123, Lima"></div>
+        <div class="form-group"><label>Plan *</label>
+          <select id="c-plan"></select>
+        </div>
+        <div class="form-group"><label>Estado</label>
+          <select id="c-estado"><option value="activo">Activo</option><option value="inactivo">Inactivo</option></select>
+        </div>
+        <div class="form-group full"><label>Notas</label><input id="c-notas" placeholder="Observaciones..."></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalCliente')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCliente()">Guardar Cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PAGO -->
+<div class="modal-overlay" id="modalPago">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Registrar Pago</h2>
+      <button class="modal-close" onclick="closeModal('modalPago')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label>Cliente *</label>
+          <select id="p-cliente"></select>
+        </div>
+        <div class="form-group"><label>Monto (S/) *</label><input id="p-monto" type="number" placeholder="0.00"></div>
+        <div class="form-group"><label>Mes que Cubre</label><input id="p-mes" type="month"></div>
+        <div class="form-group"><label>Fecha de Pago</label><input id="p-fecha" type="date"></div>
+        <div class="form-group"><label>Vencimiento</label><input id="p-vence" type="date"></div>
+        <div class="form-group"><label>Estado</label>
+          <select id="p-estado"><option value="pagado">Pagado</option><option value="pendiente">Pendiente</option><option value="vencido">Vencido</option></select>
+        </div>
+        <div class="form-group full"><label>Observación</label><input id="p-obs" placeholder="Pago en efectivo, transferencia..."></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalPago')">Cancelar</button>
+      <button class="btn btn-primary" onclick="savePago()">Registrar Pago</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PLAN -->
+<div class="modal-overlay" id="modalPlan">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Nuevo Plan</h2>
+      <button class="modal-close" onclick="closeModal('modalPlan')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Nombre del Plan *</label><input id="pl-nombre" placeholder="Plan Básico"></div>
+        <div class="form-group"><label>Velocidad (Mbps) *</label><input id="pl-vel" type="number" placeholder="10"></div>
+        <div class="form-group"><label>Precio Mensual (S/) *</label><input id="pl-precio" type="number" placeholder="60"></div>
+        <div class="form-group"><label>Tipo</label>
+          <select id="pl-tipo"><option>Fibra Óptica</option><option>Cable</option><option>Inalámbrico</option></select>
+        </div>
+        <div class="form-group full"><label>Descripción</label><input id="pl-desc" placeholder="Ideal para..."></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalPlan')">Cancelar</button>
+      <button class="btn btn-primary" onclick="savePlan()">Guardar Plan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== DATOS ==========
+let planes = [
+  { id:1, nombre:'Plan Básico', velocidad:10, precio:60, tipo:'Cable', desc:'Ideal para uso doméstico básico' },
+  { id:2, nombre:'Plan Estándar', velocidad:30, precio:100, tipo:'Fibra Óptica', desc:'Perfecto para streaming y home office', featured:true },
+  { id:3, nombre:'Plan Premium', velocidad:100, precio:180, tipo:'Fibra Óptica', desc:'Para empresas y hogares exigentes' },
+];
+
+let clientes = [
+  { id:1, nombre:'María López', dni:'12345678', tel:'987654321', email:'maria@gmail.com', dir:'Av. Grau 456, Lima', plan:2, estado:'activo', notas:'' },
+  { id:2, nombre:'Carlos Quispe', dni:'87654321', tel:'976543210', email:'carlos@hotmail.com', dir:'Jr. Huallaga 123', plan:1, estado:'activo', notas:'' },
+  { id:3, nombre:'Ana Torres', dni:'11223344', tel:'965432109', email:'ana@gmail.com', dir:'Calle Los Álamos 78', plan:3, estado:'activo', notas:'' },
+  { id:4, nombre:'Luis Mamani', dni:'44332211', tel:'954321098', email:'luis@gmail.com', dir:'Av. Túpac Amaru 890', plan:2, estado:'inactivo', notas:'Se mudó' },
+  { id:5, nombre:'Rosa Flores', dni:'55667788', tel:'943210987', email:'rosa@yahoo.com', dir:'Jr. Chancay 321', plan:1, estado:'activo', notas:'' },
+];
+
+let pagos = [
+  { id:1, clienteId:1, monto:100, mes:'2026-02', fecha:'2026-02-01', vence:'2026-02-28', estado:'pagado', obs:'Transferencia' },
+  { id:2, clienteId:2, monto:60, mes:'2026-02', fecha:'', vence:'2026-02-20', estado:'vencido', obs:'' },
+  { id:3, clienteId:3, monto:180, mes:'2026-02', fecha:'2026-02-05', vence:'2026-03-05', estado:'pagado', obs:'Efectivo' },
+  { id:4, clienteId:5, monto:60, mes:'2026-02', fecha:'', vence:'2026-02-25', estado:'pendiente', obs:'' },
+  { id:5, clienteId:1, monto:100, mes:'2026-01', fecha:'2026-01-02', vence:'2026-01-31', estado:'pagado', obs:'App' },
+  { id:6, clienteId:3, monto:180, mes:'2026-01', fecha:'2026-01-05', vence:'2026-01-31', estado:'pagado', obs:'Efectivo' },
+];
+
+let nextId = { cliente:6, pago:7, plan:4 };
+let editingCliente = null;
+let filterClienteText = '', filterClienteEstado = '', filterPagoText = '', filterPagoEstado = '';
+
+// ========== UTILIDADES ==========
+const getPlan = id => planes.find(p=>p.id===id);
+const getCliente = id => clientes.find(c=>c.id===id);
+const today = new Date();
+const fmt = d => d ? new Date(d).toLocaleDateString('es-PE',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+function goTo(page, el) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  if(el) el.classList.add('active');
+  else {
+    document.querySelectorAll('.nav-item').forEach(n=>{
+      if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes(page)) n.classList.add('active');
+    });
+  }
+  const titles = {dashboard:'Dashboard',clientes:'Clientes',pagos:'Pagos & Facturación',planes:'Planes',reportes:'Reportes'};
+  document.getElementById('page-title').textContent = titles[page];
+  if(page==='clientes') renderClientes();
+  if(page==='pagos') renderPagos();
+  if(page==='planes') renderPlanes();
+  if(page==='reportes') renderReportes();
+  if(page==='dashboard') renderDashboard();
+}
+
+function openModal(id) {
+  if(id==='modalCliente') { populatePlanSelect('c-plan'); editingCliente=null; document.getElementById('modal-cliente-title').textContent='Nuevo Cliente'; clearClienteForm(); }
+  if(id==='modalPago') { populateClienteSelect('p-cliente'); document.getElementById('p-fecha').value=today.toISOString().split('T')[0]; }
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function populatePlanSelect(selectId) {
+  const s = document.getElementById(selectId);
+  s.innerHTML = planes.map(p=>`<option value="${p.id}">${p.nombre} - S/${p.precio}/mes (${p.velocidad}Mbps)</option>`).join('');
+}
+function populateClienteSelect(selectId) {
+  const s = document.getElementById(selectId);
+  s.innerHTML = clientes.filter(c=>c.estado==='activo').map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
+}
+
+function clearClienteForm() {
+  ['c-nombre','c-dni','c-tel','c-email','c-dir','c-notas'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('c-estado').value='activo';
+}
+
+// ========== CLIENTES ==========
+function saveCliente() {
+  const nombre = document.getElementById('c-nombre').value.trim();
+  const tel = document.getElementById('c-tel').value.trim();
+  const planId = parseInt(document.getElementById('c-plan').value);
+  if(!nombre||!tel) { alert('Nombre y teléfono son requeridos'); return; }
+  if(editingCliente) {
+    const c = clientes.find(x=>x.id===editingCliente);
+    c.nombre=nombre; c.dni=document.getElementById('c-dni').value; c.tel=tel;
+    c.email=document.getElementById('c-email').value; c.dir=document.getElementById('c-dir').value;
+    c.plan=planId; c.estado=document.getElementById('c-estado').value; c.notas=document.getElementById('c-notas').value;
+  } else {
+    clientes.push({ id:nextId.cliente++, nombre, dni:document.getElementById('c-dni').value, tel, email:document.getElementById('c-email').value, dir:document.getElementById('c-dir').value, plan:planId, estado:document.getElementById('c-estado').value, notas:document.getElementById('c-notas').value });
+  }
+  closeModal('modalCliente'); renderClientes(); renderDashboard();
+}
+
+function editCliente(id) {
+  const c = getCliente(id);
+  editingCliente = id;
+  document.getElementById('modal-cliente-title').textContent = 'Editar Cliente';
+  populatePlanSelect('c-plan');
+  document.getElementById('c-nombre').value=c.nombre;
+  document.getElementById('c-dni').value=c.dni||'';
+  document.getElementById('c-tel').value=c.tel;
+  document.getElementById('c-email').value=c.email||'';
+  document.getElementById('c-dir').value=c.dir||'';
+  document.getElementById('c-plan').value=c.plan;
+  document.getElementById('c-estado').value=c.estado;
+  document.getElementById('c-notas').value=c.notas||'';
+  openModal('modalCliente');
+}
+
+function deleteCliente(id) {
+  if(!confirm('¿Eliminar este cliente?')) return;
+  clientes = clientes.filter(c=>c.id!==id);
+  renderClientes(); renderDashboard();
+}
+
+function filterClientes(v) { filterClienteText=v; renderClientes(); }
+function filterClientesEstado(v) { filterClienteEstado=v; renderClientes(); }
+
+function renderClientes() {
+  let list = clientes.filter(c => {
+    const match = c.nombre.toLowerCase().includes(filterClienteText.toLowerCase()) ||
+      (c.tel||'').includes(filterClienteText) || (c.dni||'').includes(filterClienteText);
+    const estMatch = !filterClienteEstado || c.estado===filterClienteEstado;
+    return match && estMatch;
+  });
+  const tb = document.getElementById('clientes-table');
+  if(!list.length) { tb.innerHTML=`<tr><td colspan="7"><div class="empty"><div class="empty-icon">👥</div><p>No hay clientes registrados</p></div></td></tr>`; return; }
+  tb.innerHTML = list.map((c,i)=>{
+    const p = getPlan(c.plan);
+    return `<tr>
+      <td style="color:var(--text2)">${i+1}</td>
+      <td><strong>${c.nombre}</strong><br><span style="font-size:11px;color:var(--text2)">${c.email||'—'}</span></td>
+      <td>${c.tel}</td>
+      <td style="font-size:11px;color:var(--text2)">${c.dir||'—'}</td>
+      <td>${p?p.nombre:'—'}</td>
+      <td><span class="status ${c.estado}">${c.estado}</span></td>
+      <td><button class="btn btn-outline btn-sm" onclick="editCliente(${c.id})">Editar</button> <button class="btn btn-danger btn-sm" onclick="deleteCliente(${c.id})">Eliminar</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ========== PAGOS ==========
+function savePago() {
+  const clienteId = parseInt(document.getElementById('p-cliente').value);
+  const monto = parseFloat(document.getElementById('p-monto').value);
+  if(!clienteId||!monto) { alert('Cliente y monto son requeridos'); return; }
+  const cliente = getCliente(clienteId);
+  const plan = getPlan(cliente.plan);
+  pagos.push({ id:nextId.pago++, clienteId, monto, mes:document.getElementById('p-mes').value, fecha:document.getElementById('p-fecha').value, vence:document.getElementById('p-vence').value, estado:document.getElementById('p-estado').value, obs:document.getElementById('p-obs').value });
+  closeModal('modalPago'); renderPagos(); renderDashboard();
+}
+
+function marcarPagado(id) {
+  const p = pagos.find(x=>x.id===id);
+  if(p) { p.estado='pagado'; p.fecha=today.toISOString().split('T')[0]; }
+  renderPagos(); renderDashboard();
+}
+
+function deletePago(id) {
+  if(!confirm('¿Eliminar este registro?')) return;
+  pagos = pagos.filter(p=>p.id!==id);
+  renderPagos(); renderDashboard();
+}
+
+function filterPagos(v) { filterPagoText=v; renderPagos(); }
+function filterPagosEstado(v) { filterPagoEstado=v; renderPagos(); }
+
+function renderPagos() {
+  let list = pagos.filter(p => {
+    const c = getCliente(p.clienteId);
+    const match = !filterPagoText || (c&&c.nombre.toLowerCase().includes(filterPagoText.toLowerCase()));
+    const estMatch = !filterPagoEstado || p.estado===filterPagoEstado;
+    return match && estMatch;
+  });
+  const cobrado = pagos.filter(p=>p.estado==='pagado' && p.fecha && p.fecha.startsWith('2026-02')).reduce((a,p)=>a+p.monto,0);
+  const pend = pagos.filter(p=>p.estado==='pendiente'||p.estado==='vencido').reduce((a,p)=>a+p.monto,0);
+  document.getElementById('p-cobrado').textContent = 'S/ '+cobrado.toLocaleString();
+  document.getElementById('p-pendiente').textContent = 'S/ '+pend.toLocaleString();
+  document.getElementById('p-total').textContent = pagos.length;
+
+  const tb = document.getElementById('pagos-table');
+  if(!list.length) { tb.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="empty-icon">💳</div><p>No hay pagos registrados</p></div></td></tr>`; return; }
+  tb.innerHTML = list.map((p,i)=>{
+    const c = getCliente(p.clienteId);
+    const pl = c ? getPlan(c.plan) : null;
+    return `<tr>
+      <td style="color:var(--text2)">${i+1}</td>
+      <td>${c?c.nombre:'—'}</td>
+      <td>${pl?pl.nombre:'—'}</td>
+      <td style="font-weight:600">S/ ${p.monto.toLocaleString()}</td>
+      <td>${fmt(p.fecha)}</td>
+      <td>${fmt(p.vence)}</td>
+      <td><span class="status ${p.estado}">${p.estado}</span></td>
+      <td>
+        ${p.estado!=='pagado'?`<button class="btn btn-primary btn-sm" onclick="marcarPagado(${p.id})">✓ Cobrado</button> `:''}
+        <button class="btn btn-danger btn-sm" onclick="deletePago(${p.id})">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ========== PLANES ==========
+function savePlan() {
+  const nombre = document.getElementById('pl-nombre').value.trim();
+  const velocidad = parseInt(document.getElementById('pl-vel').value);
+  const precio = parseFloat(document.getElementById('pl-precio').value);
+  if(!nombre||!velocidad||!precio) { alert('Completa todos los campos requeridos'); return; }
+  planes.push({ id:nextId.plan++, nombre, velocidad, precio, tipo:document.getElementById('pl-tipo').value, desc:document.getElementById('pl-desc').value });
+  closeModal('modalPlan'); renderPlanes();
+}
+
+function deletePlan(id) {
+  if(clientes.some(c=>c.plan===id)) { alert('No puedes eliminar un plan que tiene clientes asignados'); return; }
+  if(!confirm('¿Eliminar este plan?')) return;
+  planes = planes.filter(p=>p.id!==id);
+  renderPlanes();
+}
+
+function renderPlanes() {
+  const grid = document.getElementById('planes-grid');
+  grid.innerHTML = planes.map(p=>{
+    const cnt = clientes.filter(c=>c.plan===p.id).length;
+    return `<div class="plan-card ${p.featured?'featured':''}">
+      ${p.featured?'<span class="plan-badge">Popular</span>':''}
+      <div class="plan-name">${p.nombre}</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:8px">${p.tipo}</div>
+      <div class="plan-speed">${p.velocidad}<span> Mbps</span></div>
+      <div class="plan-price">S/ ${p.precio}<span>/mes</span></div>
+      <div class="plan-clients">👥 ${cnt} cliente${cnt!==1?'s':''}</div>
+      ${p.desc?`<div style="font-size:11px;color:var(--text2);margin-bottom:12px">${p.desc}</div>`:''}
+      <div class="plan-actions">
+        <button class="btn btn-danger btn-sm" onclick="deletePlan(${p.id})">Eliminar</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ========== DASHBOARD ==========
+function renderDashboard() {
+  const total = clientes.length;
+  const activos = clientes.filter(c=>c.estado==='activo').length;
+  const pends = pagos.filter(p=>p.estado==='pendiente'||p.estado==='vencido').length;
+  const ingresos = pagos.filter(p=>p.estado==='pagado'&&p.fecha&&p.fecha.startsWith('2026-02')).reduce((a,p)=>a+p.monto,0);
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-activos').textContent = activos;
+  document.getElementById('s-pendientes').textContent = pends;
+  document.getElementById('s-ingresos').textContent = 'S/ '+ingresos.toLocaleString();
+  document.getElementById('alert-count').textContent = pends+' alertas';
+
+  // Pending table
+  const tb = document.getElementById('pending-table');
+  const pendList = pagos.filter(p=>p.estado==='pendiente'||p.estado==='vencido').slice(0,5);
+  if(!pendList.length) { tb.innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--text2);padding:24px">✅ Sin pagos pendientes</td></tr>`; }
+  else tb.innerHTML = pendList.map(p=>{ const c=getCliente(p.clienteId); const pl=c?getPlan(c.plan):null; return `<tr><td>${c?c.nombre:'—'}</td><td>${pl?pl.nombre:'—'}</td><td>S/ ${p.monto}</td><td>${fmt(p.vence)}</td><td><span class="status ${p.estado}">${p.estado}</span></td></tr>`; }).join('');
+
+  // Bar chart (últimos 6 meses)
+  const now = new Date();
+  let meses = [], valores = [];
+  for(let i=5;i>=0;i--){
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    const total = pagos.filter(p=>p.estado==='pagado'&&p.fecha&&p.fecha.startsWith(key)).reduce((a,p)=>a+p.monto,0);
+    meses.push(months[d.getMonth()]); valores.push(total);
+  }
+  const maxV = Math.max(...valores,1);
+  document.getElementById('bar-chart').innerHTML = valores.map((v,i)=>`<div class="bar" style="height:${Math.max(8,(v/maxV*100))}%" title="${meses[i]}: S/${v}"></div>`).join('');
+  document.getElementById('bar-labels').innerHTML = meses.map(m=>`<div>${m}</div>`).join('');
+
+  // Donut
+  renderDonut('donut-svg','donut-legend',[
+    {label:'Activos',val:activos,color:'#34d399'},
+    {label:'Inactivos',val:clientes.filter(c=>c.estado==='inactivo').length,color:'#f87171'},
+  ]);
+}
+
+function renderDonut(svgId,legId,data) {
+  const svg = document.getElementById(svgId);
+  const legend = document.getElementById(legId);
+  const total = data.reduce((a,d)=>a+d.val,0)||1;
+  let startAngle = -Math.PI/2; const r=45, cx=60, cy=60;
+  svg.innerHTML = data.map(d=>{
+    const angle = (d.val/total)*2*Math.PI;
+    const x1=cx+r*Math.cos(startAngle), y1=cy+r*Math.sin(startAngle);
+    const x2=cx+r*Math.cos(startAngle+angle), y2=cy+r*Math.sin(startAngle+angle);
+    const large=angle>Math.PI?1:0;
+    const path=`M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z`;
+    startAngle+=angle;
+    return `<path d="${path}" fill="${d.color}" opacity="0.85"/>`;
+  }).join('')+`<circle cx="${cx}" cy="${cy}" r="28" fill="var(--card)"/><text x="${cx}" y="${cy+5}" text-anchor="middle" fill="var(--text)" font-size="16" font-family="Syne,sans-serif" font-weight="700">${total}</text>`;
+  legend.innerHTML = data.map(d=>`<div class="legend-item"><div style="display:flex;align-items:center"><div class="legend-dot" style="background:${d.color}"></div>${d.label}</div><strong>${d.val}</strong></div>`).join('');
+}
+
+// ========== REPORTES ==========
+function renderReportes() {
+  const now = new Date();
+  const thisMonth = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const nuevos = clientes.length; // simplified
+  const activos = clientes.filter(c=>c.estado==='activo').length;
+  const ret = clientes.length ? Math.round((activos/clientes.length)*100) : 0;
+  const totalPagado = pagos.filter(p=>p.estado==='pagado').reduce((a,p)=>a+p.monto,0);
+  const avgPago = pagos.filter(p=>p.estado==='pagado').length ? Math.round(totalPagado/pagos.filter(p=>p.estado==='pagado').length) : 0;
+  const planCount = {};
+  clientes.forEach(c=>{ planCount[c.plan]=(planCount[c.plan]||0)+1; });
+  const topPlanId = Object.entries(planCount).sort((a,b)=>b[1]-a[1])[0];
+  const topPlan = topPlanId ? getPlan(parseInt(topPlanId[0])) : null;
+  document.getElementById('r-nuevos').textContent = nuevos;
+  document.getElementById('r-retencion').textContent = ret+'%';
+  document.getElementById('r-promedio').textContent = 'S/ '+avgPago;
+  document.getElementById('r-top').textContent = topPlan ? topPlan.nombre : '—';
+
+  // Annual chart
+  let meses=[], vals=[];
+  for(let i=11;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    const t=pagos.filter(p=>p.estado==='pagado'&&p.fecha&&p.fecha.startsWith(key)).reduce((a,p)=>a+p.monto,0);
+    meses.push(months[d.getMonth()]); vals.push(t);
+  }
+  const maxV=Math.max(...vals,1);
+  document.getElementById('report-chart').innerHTML=vals.map((v,i)=>`<div class="bar" style="height:${Math.max(8,(v/maxV*100))}%;background:linear-gradient(180deg,var(--accent2),rgba(129,140,248,0.3))" title="${meses[i]}: S/${v}"></div>`).join('');
+  document.getElementById('report-labels').innerHTML=meses.map(m=>`<div>${m}</div>`).join('');
+
+  // Plan distribution
+  const pd = document.getElementById('plan-dist');
+  pd.innerHTML = planes.map(p=>{
+    const cnt = clientes.filter(c=>c.plan===p.id).length;
+    const pct = clientes.length ? Math.round(cnt/clientes.length*100) : 0;
+    return `<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>${p.nombre}</span><span>${cnt} clientes (${pct}%)</span></div>
+      <div style="background:var(--bg3);border-radius:4px;height:8px;overflow:hidden"><div style="width:${pct}%;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:4px;transition:width 0.5s"></div></div>
+    </div>`;
+  }).join('');
+}
+
+// ========== INIT ==========
+document.getElementById('topbar-date').textContent = today.toLocaleDateString('es-PE',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+renderDashboard();
+</script>
+</body>
+</html>
