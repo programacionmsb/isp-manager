@@ -5,7 +5,8 @@ const PlanSchema = new mongoose.Schema({
   velocidad:   { type: Number, required: true },   // Mbps
   precio:      { type: Number, required: true },   // S/. por mes (o por año si periodo=anual)
   periodo:     { type: String, enum: ['mensual', 'anual'], default: 'mensual' },
-  tipo:        { type: String, enum: ['Fibra Óptica', 'Cable', 'Inalámbrico'], default: 'Fibra Óptica' },
+  servicio:    { type: String, enum: ['Internet', 'Cable', 'Internet y Cable'], default: 'Internet' },
+  tipo:        { type: String, enum: ['Fibra Óptica', 'Cable', 'Inalámbrico', 'Varios'], default: 'Fibra Óptica' },
   descripcion: { type: String },
   activo:      { type: Boolean, default: true },
 }, { timestamps: true });
