@@ -8,6 +8,7 @@ import ClienteDetalle from './components/Clientes/ClienteDetalle';
 import Planes from './components/Planes/Planes';
 import Caja from './components/Caja/Caja';
 import Reportes from './components/Reportes/Reportes';
+import Zonas from './components/Zonas/Zonas';
 
 function RutaProtegida({ children }) {
   const { usuario, cargando } = useAuth();
@@ -28,6 +29,7 @@ export default function App() {
             <Route path="planes" element={<Planes />} />
             <Route path="caja" element={<Caja />} />
             <Route path="reportes" element={<Reportes />} />
+            <Route path="zonas" element={<Zonas />} />
           </Route>
         </Routes>
       </BrowserRouter>

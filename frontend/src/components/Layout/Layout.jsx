@@ -8,6 +8,7 @@ const navItems = [
   { to: '/planes',   icon: '📦', label: 'Planes' },
   { to: '/caja',     icon: '💳', label: 'Caja' },
   { to: '/reportes', icon: '📊', label: 'Reportes' },
+  { to: '/zonas',    icon: '📍', label: 'Zonas' },
 ];
 
 export default function Layout() {
