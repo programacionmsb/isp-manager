@@ -2,7 +2,15 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 
-const EMPTY = { nombre:'', dni:'', telefono:'', email:'', tipoConexion:'Fibra Óptica', zona:'', direccion:'', plan:'', estado:'activo', diaCorte:1, notas:'' };
+const EMPTY = { nombre:'', dni:'', telefono:'', email:'', servicios:['Internet'], tipoConexion:'Fibra Óptica', zona:'', direccion:'', plan:'', estado:'activo', diaCorte:1, notas:'' };
+const SERVICIOS = ['Internet', 'Cable', 'Internet y Cable'];
+
+const toggleServicio = (form, setForm, val) => {
+  const lista = form.servicios.includes(val)
+    ? form.servicios.filter(s => s !== val)
+    : [...form.servicios, val];
+  setForm({ ...form, servicios: lista });
+};
 
 export default function Clientes() {
   const [clientes, setClientes] = useState([]);
@@ -29,7 +37,7 @@ export default function Clientes() {
 
   const abrirModal = (cliente = null) => {
     if (cliente) {
-      setForm({ ...cliente, plan: cliente.plan?._id || cliente.plan, zona: cliente.zona?._id || cliente.zona || '' });
+      setForm({ ...cliente, plan: cliente.plan?._id || cliente.plan, zona: cliente.zona?._id || cliente.zona || '', servicios: cliente.servicios || ['Internet'] });
       setEditId(cliente._id);
     } else {
       setForm(EMPTY); setEditId(null);
@@ -136,6 +144,21 @@ export default function Clientes() {
                 <div className="form-group">
                   <label>Email</label>
                   <input className="input" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} placeholder="correo@mail.com" />
+                </div>
+                <div className="form-group full">
+                  <label>Servicios</label>
+                  <div style={{display:'flex', gap:'16px', marginTop:'6px'}}>
+                    {SERVICIOS.map(s => (
+                      <label key={s} style={{display:'flex', alignItems:'center', gap:'6px', cursor:'pointer', fontSize:'13px'}}>
+                        <input
+                          type="checkbox"
+                          checked={form.servicios.includes(s)}
+                          onChange={() => toggleServicio(form, setForm, s)}
+                        />
+                        {s}
+                      </label>
+                    ))}
+                  </div>
                 </div>
                 <div className="form-group">
                   <label>Tipo de Conexión</label>

@@ -5,6 +5,7 @@ const ClienteSchema = new mongoose.Schema({
   dni:           { type: String },
   telefono:      { type: String, required: true },
   email:         { type: String },
+  servicios:     { type: [String], enum: ['Internet', 'Cable', 'Internet y Cable'], default: ['Internet'] },
   tipoConexion:  { type: String, enum: ['Fibra Óptica', 'Inalámbrico', 'UTP', 'Varios'], default: 'Fibra Óptica' },
   zona:          { type: mongoose.Schema.Types.ObjectId, ref: 'Zona' },
   direccion:     { type: String },
