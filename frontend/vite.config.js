@@ -10,5 +10,16 @@ export default defineConfig({
         changeOrigin: true,
       }
     }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+          recharts: ['recharts'],
+          axios: ['axios'],
+        }
+      }
+    }
   }
 })
