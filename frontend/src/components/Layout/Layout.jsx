@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './Layout.css';
@@ -15,18 +16,25 @@ const navItems = [
 export default function Layout() {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
+  const [menuAbierto, setMenuAbierto] = useState(false);
 
   const handleLogout = () => { logout(); navigate('/login'); };
+  const cerrarMenu = () => setMenuAbierto(false);
 
   return (
     <div className="layout">
-      <aside className="sidebar">
+
+      {/* Overlay mobile */}
+      {menuAbierto && <div className="sidebar-overlay" onClick={cerrarMenu} />}
+
+      <aside className={`sidebar ${menuAbierto ? 'sidebar-open' : ''}`}>
         <div className="sidebar-logo">
           <div className="logo-icon">📡</div>
           <div className="logo-text">
             <h1>ISP MANAGER</h1>
             <p>Sistema de Administración</p>
           </div>
+          <button className="sidebar-close" onClick={cerrarMenu}>✕</button>
         </div>
 
         <nav className="sidebar-nav">
@@ -37,6 +45,7 @@ export default function Layout() {
               to={item.to}
               end={item.end}
               className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+              onClick={cerrarMenu}
             >
               <span className="nav-icon">{item.icon}</span>
               {item.label}
@@ -57,6 +66,12 @@ export default function Layout() {
       </aside>
 
       <main className="main-content">
+        {/* Topbar mobile */}
+        <div className="mobile-topbar">
+          <button className="hamburger" onClick={() => setMenuAbierto(true)}>☰</button>
+          <span className="mobile-title">ISP MANAGER</span>
+        </div>
+
         <div className="content-inner fade-in">
           <Outlet />
         </div>

@@ -124,3 +124,56 @@ label { font-size: 11px; color: var(--text2); letter-spacing: 1px; text-transfor
   to   { opacity: 1; transform: translateY(0); }
 }
 .fade-in { animation: fadeIn 0.3s ease; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  /* Stats */
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+  .stat-value { font-size: 22px; }
+
+  /* Tablas: scroll horizontal */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { min-width: 540px; }
+  th, td { padding: 10px 12px; }
+
+  /* Page header: apila verticalmente */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .page-title { font-size: 18px; }
+
+  /* Formularios: una sola columna */
+  .form-grid { grid-template-columns: 1fr; }
+  .form-group.full { grid-column: 1; }
+
+  /* Modal: ocupa casi toda la pantalla */
+  .modal {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    border-radius: 16px 16px 0 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    max-height: 92vh;
+  }
+  .modal-overlay { align-items: flex-end; }
+  .modal-body { padding: 16px; }
+  .modal-head { padding: 16px; }
+  .modal-footer { padding: 12px 16px; }
+
+  /* Filtros: wrap en columna */
+  .filtros-wrap { flex-direction: column; }
+
+  /* Cards de planes */
+  .card { padding: 14px; }
+}
+
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-value { font-size: 20px; }
+  .btn { padding: 7px 12px; font-size: 11px; }
+}

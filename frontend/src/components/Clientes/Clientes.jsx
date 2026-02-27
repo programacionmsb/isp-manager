@@ -72,7 +72,7 @@ export default function Clientes() {
         <button className="btn btn-primary" onClick={() => abrirModal()}>+ Nuevo Cliente</button>
       </div>
 
-      <div style={{display:'flex', gap:'12px', marginBottom:'16px', flexWrap:'wrap'}}>
+      <div className="filtros-wrap" style={{display:'flex', gap:'12px', marginBottom:'16px', flexWrap:'wrap'}}>
         <input className="input" placeholder="🔍 Buscar por nombre, DNI, teléfono..." value={search}
           onChange={e => setSearch(e.target.value)} style={{maxWidth:'300px'}} />
         <select className="select" style={{maxWidth:'180px'}} value={estado} onChange={e => setEstado(e.target.value)}>
