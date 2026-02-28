@@ -14,7 +14,13 @@ import Usuarios from './components/Usuarios/Usuarios';
 function RutaProtegida({ children }) {
   const { usuario, cargando } = useAuth();
   if (cargando) return <div className="loading">Cargando...</div>;
-  return usuario ? children : <Navigate to="/login" />;
+  if (!usuario) return <Navigate to="/login" />;
+  // Al recargar la página, redirigir siempre al Dashboard
+  if (!sessionStorage.getItem('navegando')) {
+    sessionStorage.setItem('navegando', '1');
+    return <Navigate to="/" replace />;
+  }
+  return children;
 }
 
 export default function App() {
