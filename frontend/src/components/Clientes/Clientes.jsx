@@ -16,6 +16,8 @@ export default function Clientes() {
   const [servicio, setServicio] = useState('');
   const [tipoConexion, setTipoConexion] = useState('');
   const [loading, setLoading] = useState(true);
+  const [modalCorte, setModalCorte] = useState(false);
+  const [diaCorteGlobal, setDiaCorteGlobal] = useState(1);
   const navigate = useNavigate();
 
   const cargar = async () => {
@@ -49,6 +51,15 @@ export default function Clientes() {
     } catch (err) { alert(err.response?.data?.msg || 'Error al guardar'); }
   };
 
+  const actualizarDiaCorteGlobal = async () => {
+    try {
+      const r = await api.put('/clientes/bulk/dia-corte', { diaCorte: diaCorteGlobal });
+      alert(r.data.msg);
+      setModalCorte(false);
+      cargar();
+    } catch (err) { alert(err.response?.data?.msg || 'Error'); }
+  };
+
   const eliminar = async id => {
     if (!confirm('¿Eliminar este cliente?')) return;
     await api.delete(`/clientes/${id}`);
@@ -69,7 +80,10 @@ export default function Clientes() {
           <div className="page-title">Clientes</div>
           <div className="page-sub">Gestiona todos tus clientes de internet</div>
         </div>
-        <button className="btn btn-primary" onClick={() => abrirModal()}>+ Nuevo Cliente</button>
+        <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
+          <button className="btn btn-outline" onClick={() => setModalCorte(true)}>⚙ Día de Corte</button>
+          <button className="btn btn-primary" onClick={() => abrirModal()}>+ Nuevo Cliente</button>
+        </div>
       </div>
 
       <div className="filtros-wrap" style={{display:'flex', gap:'12px', marginBottom:'16px', flexWrap:'wrap'}}>
@@ -212,6 +226,36 @@ export default function Clientes() {
             <div className="modal-footer">
               <button className="btn btn-outline" onClick={() => setModal(false)}>Cancelar</button>
               <button className="btn btn-primary" onClick={guardar}>Guardar Cliente</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {modalCorte && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setModalCorte(false)}>
+          <div className="modal">
+            <div className="modal-head">
+              <h2>Actualizar Día de Corte</h2>
+              <button className="modal-close" onClick={() => setModalCorte(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p style={{fontSize:'12px', color:'var(--text2)', marginBottom:'16px'}}>
+                Esto actualizará el día de corte de <strong>todos los clientes</strong>.
+              </p>
+              <div className="form-group">
+                <label>Día de Corte (1 - 28)</label>
+                <input
+                  className="input"
+                  type="number"
+                  min="1" max="28"
+                  value={diaCorteGlobal}
+                  onChange={e => setDiaCorteGlobal(Number(e.target.value))}
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-outline" onClick={() => setModalCorte(false)}>Cancelar</button>
+              <button className="btn btn-primary" onClick={actualizarDiaCorteGlobal}>Aplicar a Todos</button>
             </div>
           </div>
         </div>

@@ -23,6 +23,17 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// PUT /api/clientes/bulk/dia-corte — actualizar día de corte a todos los clientes
+router.put('/bulk/dia-corte', auth, async (req, res) => {
+  try {
+    const { diaCorte } = req.body;
+    if (!diaCorte || diaCorte < 1 || diaCorte > 28)
+      return res.status(400).json({ msg: 'El día debe estar entre 1 y 28' });
+    const result = await Cliente.updateMany({}, { $set: { diaCorte: Number(diaCorte) } });
+    res.json({ msg: `Día de corte actualizado a ${diaCorte} para ${result.modifiedCount} clientes` });
+  } catch (err) { res.status(500).json({ msg: err.message }); }
+});
+
 // GET /api/clientes/:id
 router.get('/:id', auth, async (req, res) => {
   try {
